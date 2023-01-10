@@ -47,4 +47,88 @@ public:
 ```
 --------------------
 
-- (a + b) % c = [(a % c) + (b % c)] % c
+- 模运算规则：
+    - (a + b) % c = [(a % c) + (b % c)] % c
+    - (a - b) % c = [(a % c) - (b % c)] % c
+    - (a * b) % c = [(a % c) * (b % c)] % c
+    - (a ^ b) % c = [(a % c) ^ b] % c
+
+- 方法一: 动态规划，O(n)
+- 方法二: 快速幂，O(logn)
+
+$$
+F_{n} =
+\begin{cases}
+n, n < 2 \\
+F_{n-1} + F_{n-2}, n >= 2
+\end{cases}
+$$
+
+$$
+\begin{pmatrix}1 & 1 \\ 1 & 0\\ 
+\end{pmatrix}
+\begin{pmatrix}F_{n-1} \\ F_{n-2}\\ 
+\end{pmatrix} =
+\begin{pmatrix}F_{n} \\ F_{n-1}\\ 
+\end{pmatrix}
+$$
+
+$$
+\begin{pmatrix}F_{n} \\ F_{n-1}\\ 
+\end{pmatrix} = 
+\begin{pmatrix}1 & 1 \\ 1 & 0\\ 
+\end{pmatrix} ^ {n - 1}
+\begin{pmatrix}F_{1} \\ F_{0}\\ 
+\end{pmatrix}
+$$
+
+$$
+\begin{pmatrix}1 & 1 \\ 1 & 0\\ 
+\end{pmatrix} ^ {n - 1} 计算采用快速幂
+$$
+
+```cpp
+class Solution {
+
+class array2x2_t {
+private:
+    long m_data[4];
+    const static int MOD = 1e9 + 7;
+public:
+    array2x2_t(int a, int b, int c, int d) {
+        m_data[0] = a, m_data[1] = b;
+        m_data[2] = c, m_data[3] = d;
+    }
+    int first() const 
+    { return static_cast<int>(m_data[0]); }
+    array2x2_t &operator*=(const array2x2_t& __x) noexcept {
+        long a, b, c, d;
+        a = (m_data[0] * __x.m_data[0] 
+           + m_data[1] * __x.m_data[2]) % array2x2_t::MOD;
+        b = (m_data[0] * __x.m_data[1] 
+           + m_data[1] * __x.m_data[3]) % array2x2_t::MOD;
+        c = (m_data[2] * __x.m_data[0] 
+           + m_data[3] * __x.m_data[2]) % array2x2_t::MOD;
+        d = (m_data[2] * __x.m_data[1] 
+           + m_data[3] * __x.m_data[3]) % array2x2_t::MOD;
+        m_data[0] = a, m_data[1] = b;
+        m_data[2] = c, m_data[3] = d;
+        return *this;
+    }
+};
+
+public:
+    int fib(int n) {
+        if (n < 2) return n;
+        n -= 1;
+        array2x2_t R(1, 0, 0, 1), X(1, 1, 1, 0);
+        while (n != 0) {
+            if (n & 1)
+                R *= X;
+            X *= X;
+            n >>= 1;
+        }
+        return R.first();
+    }
+};
+```
