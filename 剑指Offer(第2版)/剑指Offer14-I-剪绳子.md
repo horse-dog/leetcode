@@ -66,10 +66,10 @@ public:
 - 令 $x_{0}=x_{1}=\cdots=x$:
 
 $$
-y=x^{\frac{n}{x}}\\
-lny=\frac{n}{x}*lnx=n*\frac{lnx}{x}\\
-\frac{1}{y}*\frac{dy}{dx}=n*\frac{1-lnx}{x^2}\\
-\frac{dy}{dx}\sim \frac{1-lnx}{x^2}\\
+y=x^{\frac{n}{x}} \\
+lny=\frac{n}{x}*lnx=n*\frac{lnx}{x} \\
+\frac{1}{y}*\frac{dy}{dx}=n*\frac{1-lnx}{x^2} \\
+\frac{dy}{dx}\sim \frac{1-lnx}{x^2} \\
 y_{max}=y|_{x=e}
 $$
 
