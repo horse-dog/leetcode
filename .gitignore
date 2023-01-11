@@ -1,5 +1,6 @@
 .vscode
 **/a.out
+**/main
 *.cc
 
 # Mac OS
