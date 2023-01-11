@@ -70,11 +70,11 @@ y=x^{\frac{n}{x}}
 $$
 
 $$
-lny=\frac{n}{x}*lnx=n*\frac{lnx}{x}
+lny=\frac{n}{x} \ast lnx=n \ast \frac{lnx}{x}
 $$
 
 $$
-\frac{1}{y}*\frac{dy}{dx}=n*\frac{1-lnx}{x^2}
+\frac{1}{y} \ast \frac{dy}{dx}=n \ast \frac{1-lnx}{x^2}
 $$
 
 $$
@@ -94,6 +94,8 @@ $$
 $$
 y=\begin{cases}
 n-1, n <= 3 \\
-3^{n/3}, n > 3 且 n \% 3=0 \\
+3^{n/3}, n > 3 且 n \pmod 3=0 \\
+3^{(n-4)/3} \ast 2 \ast 2, n > 3 且 n \pmod 3=1 \\
+3^{(n-2)/3} \ast 2, n > 3 且 n \pmod 3=2 \\
 \end{cases}
 $$
