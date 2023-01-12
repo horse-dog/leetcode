@@ -4,9 +4,21 @@
 
 /**
  * @brief binary power algorithm.
+ * calculate @p __base ^ @p __exp .
  * 
  * @param __base base number
  * @param __exp exponent number
- * @return int 
+ * @return size_t 
  */
-int binpower(int __base, size_t __exp);
+size_t binpower(size_t __base, size_t __exp);
+
+/**
+ * @brief binary power algorithm.
+ * calculate ( @p __base ^ @p __exp ) % @p __mod .
+ * 
+ * @param __base base number
+ * @param __exp exponent number
+ * @param __mod mod number
+ * @return size_t 
+ */
+size_t binpowerWithMod(size_t __base, size_t __exp, size_t __mod);
