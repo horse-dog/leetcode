@@ -22,3 +22,21 @@ size_t binpower(size_t __base, size_t __exp);
  * @return size_t 
  */
 size_t binpowerWithMod(size_t __base, size_t __exp, size_t __mod);
+
+/**
+ * @brief count `1` bit in binary format of @p __u .
+ * 
+ * @param __u number
+ * @return size_t count
+ */
+size_t bitcount(size_t __u);
+
+/**
+ * @brief calculate greatest common divisor(gcd)
+ * between @p __x and @p __y .
+ * 
+ * @param __x 
+ * @param __y 
+ * @return int gcd
+ */
+int gcd(int x, int y);
