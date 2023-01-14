@@ -21,6 +21,12 @@ int main(int argc, const char* argv[]) {
     rbt.disp();
 
     std::cout << rbt << std::endl;
+
+    rbt.clear();
+
+    rbt.disp();
+
+    std::cout << rbt << std::endl;
     
     return 0;
 }

@@ -318,12 +318,13 @@ class rbtree {
     os << '{';
     auto begin = tree.leftmost();
     auto end = tree.head();
-    if (begin != end)
+    if (begin != end) {
       os << begin->m_data;
-    begin = begin->next();
-    while (begin != end) {
-      os << ", " << begin->m_data;
       begin = begin->next();
+      while (begin != end) {
+        os << ", " << begin->m_data;
+        begin = begin->next();
+      }
     }
     return os << '}';
   }
