@@ -105,10 +105,10 @@ struct rbnode_base {
       x = y;
     } else {
       auto y = x->m_parent;
-			while (x == y->m_rchild) {
-				x = y;
-				y = y->m_parent;
-			}
+      while (x == y->m_rchild) {
+        x = y;
+        y = y->m_parent;
+      }
       /**
        * this is for case:
        * Head (y)       Head (x)
@@ -122,8 +122,8 @@ struct rbnode_base {
        * next node. so we execute `x = y`
        * except `x->rchild == y`.
        */
-			if (x->m_rchild != y)
-				x = y;
+      if (x->m_rchild != y)
+        x = y;
     }
     return x;
   }
@@ -226,12 +226,12 @@ struct rbnode : public rbnode_base {
       x = y;
     } else {
       auto y = x->m_parent;
-			while (x == y->m_rchild) {
-				x = y;
-				y = y->m_parent;
-			}
-			if (x->m_rchild != y)
-				x = y;
+      while (x == y->m_rchild) {
+        x = y;
+        y = y->m_parent;
+      }
+      if (x->m_rchild != y)
+        x = y;
     }
     return (rbnode*)x;
   }
@@ -257,15 +257,15 @@ class rbtree {
  public:
   void insert_equal(const T& v) {
     node* y = head();
-		node* x = root();
-		while (x != nullptr)
-		{	y = x;
-			if (v < x->m_data)
+    node* x = root();
+    while (x != nullptr)
+    {  y = x;
+      if (v < x->m_data)
         x = x->lchild();
       else
         x = x->rchild();
-		}
-		return __insert(y, v);
+    }
+    return __insert(y, v);
   }
 
   bool insert_unique(const T& x);
@@ -330,18 +330,18 @@ class rbtree {
  protected:
   static node* create_node(const T& x) { 
     node* tmp = (node*)malloc(sizeof(node));
-		try {
+    try {
        new (&tmp->m_data) T(x);
-		} catch (...) {
-			free((void*)tmp);
-		}
-		return tmp;
+    } catch (...) {
+      free((void*)tmp);
+    }
+    return tmp;
   }
 
   static void destroy_node(node* p) {
     (&p->m_data)->~T();
     free((void*)p);
-	}
+  }
 
   node* lower_bound(const T& x);
 
@@ -369,12 +369,12 @@ class rbtree {
 
  protected:
   void __insert(node* pos, const T& v) {
-	  node* newnode;
+    node* newnode;
     /**
      * we insert new node to lchild of pos if 
      * pos is head node or v < pos->m_data.
      */
-	  if (pos == head() || v < pos->m_data) { 
+    if (pos == head() || v < pos->m_data) { 
       newnode = create_node(v);
       pos->lchild() = newnode;
       if (pos == head()) {
