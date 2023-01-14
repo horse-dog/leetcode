@@ -340,7 +340,7 @@ class rbtree {
 
   static void destroy_node(node* p) {
     (&p->m_data)->~T();
-		free((void*)p);
+    free((void*)p);
 	}
 
   node* lower_bound(const T& x);
@@ -377,14 +377,14 @@ class rbtree {
 	  if (pos == head() || v < pos->m_data) { 
       newnode = create_node(v);
       pos->lchild() = newnode;
-		  if (pos == head()) {
+      if (pos == head()) {
         /**
          * update root, leftmost and rightmost.
          * leftmost is already set via
          * `pos->lchild() = newnode`.
          */
-			  root() = newnode;
-			  rightmost() = newnode;
+        root() = newnode;
+        rightmost() = newnode;
       } else if (pos == leftmost()) {
         /* in this case we should update leftmost */
         leftmost() = newnode;
@@ -612,7 +612,6 @@ class rbtree {
      * this case is changed into case 1.2.1.
      */
 
-    // !x->isRoot() && x->parent()->isRed()
     while (true) {
       if (x->parent() == x->gparent()->lchild()) {  /* case 1 */
         if (x->uncle() != nullptr && x->uncle()->isRed()) { /* case 1.1 */
