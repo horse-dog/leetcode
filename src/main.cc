@@ -1,3 +1,4 @@
+#include "rbtree.h"
 #include "algorithm.h"
 
 int main(int argc, const char* argv[]) {
@@ -11,5 +12,15 @@ int main(int argc, const char* argv[]) {
 
     printf("gcd(%d, %d) = %d\n", 24, 18, gcd(24, 18));
 
+    rbtree<int> rbt;
+
+    int a[] = {5, 15, 4, 2, 8, 3, 14, 9, 1, 12};
+    for (int i = 0; i < 10; i++) 
+        rbt.insert_equal(a[i]);
+
+    rbt.disp();
+
+    std::cout << rbt << std::endl;
+    
     return 0;
 }

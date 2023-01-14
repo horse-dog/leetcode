@@ -1,7 +1,7 @@
 .vscode
 **/a.out
 **/main
-*.cc
 
 # Mac OS
 *.dSYM
+*.DS_store
