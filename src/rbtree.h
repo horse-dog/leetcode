@@ -199,12 +199,12 @@ struct rbnode : public rbnode_base {
     if (x->isHead()) {
       x = x->m_rchild;
     } else if (x->m_lchild != nullptr) {
-      rbnode* y = x->m_lchild;
+      auto y = x->m_lchild;
       while (y->m_rchild != nullptr)
         y = y->m_rchild;
       x = y;
     } else {
-      rbnode* y = x->m_parent;
+      auto y = x->m_parent;
       while (x == y->m_lchild) {
         x = y;
         y = y->m_parent;
@@ -258,8 +258,8 @@ class rbtree {
   void insert_equal(const T& v) {
     node* y = head();
     node* x = root();
-    while (x != nullptr)
-    {  y = x;
+    while (x != nullptr) {  
+      y = x;
       if (v < x->m_data)
         x = x->lchild();
       else
@@ -268,13 +268,36 @@ class rbtree {
     return __insert(y, v);
   }
 
-  bool insert_unique(const T& x);
+  bool insert_unique(const T& v) {
+    node* y = head();
+    node* x = root();
+    bool comp = true;
+    while (x != nullptr) {
+      y = x;
+      comp = v < x->m_data;
+      x = comp ? x->lchild() : x->rchild();
+    }
+    node* j = y;
+    if (comp) { /* v < y->m_data. */
+      if (j == leftmost()) {
+        __insert(y, v);
+        return true;
+      } else {
+        j = j->prev();
+      }
+    }
+    if (j->m_data < v) {
+      __insert(y, v);
+      return true;
+    }
+    return false;
+  }
 
   size_t erase(const T& x);
 
   void clear() {
     if (!empty()) {
-      __erase(root());
+      __destroy(root());
       reset();
     }
   }
@@ -414,9 +437,11 @@ class rbtree {
     ++m_node_count;
   }
 
-  void __erase(node* pos) {
+  void __erase(const T& v);
+
+  void __destroy(node* pos) {
     while (pos != nullptr) {
-      __erase(pos->rchild());
+      __destroy(pos->rchild());
       node* tmp = pos->lchild();
       destroy_node(pos);
       pos = tmp;
@@ -677,6 +702,6 @@ class rbtree {
     return; /* would not reach. */
   }
 
-  void __fixDelete(rbnode_base* x);
+  void __fixErase(rbnode_base* x);
   
 };

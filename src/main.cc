@@ -14,9 +14,9 @@ int main(int argc, const char* argv[]) {
 
     rbtree<int> rbt;
 
-    int a[] = {5, 15, 4, 2, 8, 3, 14, 9, 1, 12};
-    for (int i = 0; i < 10; i++) 
-        rbt.insert_equal(a[i]);
+    int a[] = {5, 15, 4, 2, 8, 3, 14, 9, 1, 12, 7, 11, 6, 10, 13};
+    for (int i = 0; i < 15; i++) 
+        rbt.insert_unique(a[i]);
 
     rbt.disp();
 

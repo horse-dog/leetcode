@@ -1,6 +1,7 @@
 .vscode
 **/a.out
 **/main
+**/*.d
 
 # Mac OS
 *.dSYM
