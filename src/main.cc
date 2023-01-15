@@ -28,6 +28,18 @@ int main(int argc, const char* argv[]) {
     }
 
     std::cout << rbt << std::endl;
+
+    for (int i = 0; i < 20; i++) 
+        rbt.insert_unique(a[i]);
+
+    rbtree<int> rbt1;
+    rbt1 = rbt;
+
+    rbt.disp(); rbt1.disp();
+
+    rbt1 = std::move(rbt);
+
+    rbt.disp(); rbt1.disp();
     
     return 0;
 }

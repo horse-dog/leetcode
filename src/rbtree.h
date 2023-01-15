@@ -122,11 +122,35 @@ class rbtree {
   using node = rbnode<T>;
 
  public:
-  rbtree() 
-  { reset(); }
+  rbtree() { reset(); }
 
-  ~rbtree() 
-  { clear(); }
+  rbtree(const rbtree& tree) { 
+    if (!tree.empty()) {
+      m_head.m_color = tree.m_head.m_color;
+      m_node_count = tree.m_node_count;
+      root() = copyfrom(tree.root());
+      node* __min = root();
+      node* __max = root();
+      while (__min->lchild() != nullptr)
+        __min = __min->lchild();
+      while (__max->rchild() != nullptr)
+        __max = __max->rchild();
+      leftmost() = __min;
+      rightmost() = __max;
+    } else {
+      reset();
+    }
+  }
+
+  rbtree(rbtree&& tree) {
+    if (!tree.empty()) {
+      movefrom(tree);
+    } else {
+      reset();
+    }
+  }
+
+  ~rbtree() { clear(); }
 
  public:
   void insert_equal(const T& v) {
@@ -198,6 +222,20 @@ class rbtree {
     if (!empty())
       __disp(root());
     std::cout << std::endl;
+  }
+
+  rbtree& operator=(const rbtree& tree) {
+    if (this == &tree) return *this;
+    clear();
+    new (this) rbtree(tree);
+    return *this;
+  }
+
+  rbtree& operator=(rbtree&& tree) {
+    if (this == &tree) return *this;
+    clear();
+    new (this) rbtree(std::move(tree));
+    return *this;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const rbtree& tree) {
@@ -281,9 +319,22 @@ class rbtree {
     return y;    
   }
 
-  node* copyfrom();
+  node* copyfrom(const node* rt) {
+    if (rt == nullptr) return nullptr;
+    node* p = create_node(rt->m_data);
+    p->m_color = rt->m_color;
+    node* lchild = copyfrom((const node*)rt->m_lchild);
+    node* rchild = copyfrom((const node*)rt->m_rchild);
+    p->lchild() = lchild;
+    p->rchild() = rchild;
+    if (lchild != nullptr)
+      lchild->parent() = p;
+    if (rchild != nullptr)
+      rchild->parent() = p;
+    return p;
+  }
 
-  void movefrom(const rbtree& x) {
+  void movefrom(rbtree& x) {
     head()->color() = x.head()->color();
     root() = x.root();
     leftmost() = x.leftmost();
