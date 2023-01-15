@@ -247,21 +247,23 @@ struct rbnode : public rbnode_base {
 
 template <typename T>
 class rbtree {
- private:
-  allocator<rbnode<T>> m_alloc;
-  rbnode_base m_head;
-  size_t m_node_count;
-
  protected:
   using node = rbnode<T>;
+
+  struct rbtree_impl : public allocator<node> 
+  { rbnode_base m_head;
+    size_t m_node_count;
+  };
+
+  rbtree_impl m_impl;
 
  public:
   rbtree() { reset(); }
 
   rbtree(const rbtree& tree) { 
     if (!tree.empty()) {
-      m_head.m_color = tree.m_head.m_color;
-      m_node_count = tree.m_node_count;
+      m_impl.m_head.m_color = tree.m_impl.m_head.m_color;
+      m_impl.m_node_count = tree.m_impl.m_node_count;
       root() = copyfrom(tree.root());
       node* __min = root();
       node* __max = root();
@@ -335,7 +337,7 @@ class rbtree {
       __erase(tmp);
       ++n;
     }
-    m_node_count -= n;
+    m_impl.m_node_count -= n;
     return n;
   }
 
@@ -347,7 +349,7 @@ class rbtree {
   }
 
   size_t size() const
-  { return m_node_count; }
+  { return m_impl.m_node_count; }
 
   bool empty() const
   { return size() == 0; }
@@ -419,29 +421,29 @@ class rbtree {
 
  protected:
   node* head() const
-  { return (node*)(&m_head); }
+  { return (node*)(&m_impl.m_head); }
 
   node*& root() 
-  { return (node*&)m_head.m_parent; }
+  { return (node*&)m_impl.m_head.m_parent; }
 
   node* root() const
-  { return (node*)m_head.m_parent; }
+  { return (node*)m_impl.m_head.m_parent; }
 
   node*& leftmost()
-  { return (node*&)m_head.m_lchild; }
+  { return (node*&)m_impl.m_head.m_lchild; }
 
   node* leftmost() const
-  { return (node*)m_head.m_lchild; }
+  { return (node*)m_impl.m_head.m_lchild; }
 
   node*& rightmost()
-  { return (node*&)m_head.m_rchild; }
+  { return (node*&)m_impl.m_head.m_rchild; }
 
   node* rightmost() const
-  { return (node*)m_head.m_rchild; }
+  { return (node*)m_impl.m_head.m_rchild; }
 
  protected:
   node* create_node(const T& x) { 
-    node* tmp = m_alloc.allocate(1);
+    node* tmp = m_impl.allocate(1);
     try {
        new (&tmp->m_data) T(x);
     } catch (...) {
@@ -452,7 +454,7 @@ class rbtree {
 
   void destroy_node(node* p) {
     (&p->m_data)->~T();
-    m_alloc.deallocate(p, 1);
+    m_impl.deallocate(p, 1);
   }
 
   node* copyfrom(const node* rt) {
@@ -476,16 +478,16 @@ class rbtree {
     leftmost() = x.leftmost();
     rightmost() = x.rightmost();
     root()->parent() = head();
-    m_node_count = x.m_node_count;
+    m_impl.m_node_count = x.m_impl.m_node_count;
     x.reset();
   }
 
   void reset() {
-    m_head.m_color = rbcolor::red;
+    m_impl.m_head.m_color = rbcolor::red;
     root() = nullptr;
     leftmost() = head();
     rightmost() = head();
-    m_node_count = 0;
+    m_impl.m_node_count = 0;
   }
 
   template <typename _Tp>
@@ -552,7 +554,7 @@ class rbtree {
     newnode->lchild() = nullptr;
     newnode->rchild() = nullptr;
     __rebalance(newnode);
-    ++m_node_count;
+    ++m_impl.m_node_count;
   }
 
   void __erase(node* pos) {
