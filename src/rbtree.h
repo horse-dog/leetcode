@@ -245,12 +245,12 @@ struct rbnode : public rbnode_base {
 
 };
 
-template <typename T>
+template <typename T, typename Alloc=allocator<rbnode<T>>>
 class rbtree {
  protected:
   using node = rbnode<T>;
 
-  struct rbtree_impl : public allocator<node> 
+  struct rbtree_impl : public Alloc
   { rbnode_base m_head;
     size_t m_node_count;
   };
