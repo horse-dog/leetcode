@@ -10,27 +10,32 @@ struct rbnode_base {
   rbnode_base* m_parent;
   rbnode_base* m_lchild;
   rbnode_base* m_rchild;
+};
+
+template <typename T>
+struct rbnode : public rbnode_base {
+  T m_data;
 
   rbcolor& color() { return m_color; }
 
-  rbnode_base*& parent() { return m_parent; }
+  rbnode*& parent() { return (rbnode*&)m_parent; }
 
-  rbnode_base*& lchild() { return m_lchild; }
+  rbnode*& lchild() { return (rbnode*&)m_lchild; }
 
-  rbnode_base*& rchild() { return m_rchild; }
+  rbnode*& rchild() { return (rbnode*&)m_rchild; }
 
-  rbnode_base*& brother() {
-    if (this == m_parent->m_lchild)
-      return m_parent->m_rchild;
+  rbnode*& brother() {
+    if (this == parent()->lchild())
+      return parent()->rchild();
     else
-      return m_parent->m_lchild;
+      return parent()->lchild();
   }
 
-  rbnode_base*& gparent() { return m_parent->m_parent; }
+  rbnode*& gparent() { return parent()->parent(); }
 
-  rbnode_base*& uncle() {
-    rbnode_base* father = parent();
-    rbnode_base* grandfather = gparent();
+  rbnode*& uncle() {
+    rbnode* father = parent();
+    rbnode* grandfather = gparent();
     if (father == grandfather->lchild())
       return grandfather->rchild();
     else
@@ -41,37 +46,17 @@ struct rbnode_base {
 
   bool isBlk() const { return m_color == rbcolor::blk; }
 
-  auto setRed() {
-    m_color = rbcolor::red;
-    return this;
-  }
+  void setRed() { m_color = rbcolor::red; }
 
-  auto setBlk() {
-    m_color = rbcolor::blk;
-    return this;
-  }
+  void setBlk() { m_color = rbcolor::blk; }
 
-  auto minimum() const {
-    auto x = this;
-    while (x->m_lchild != nullptr)
-      x = x->m_lchild;
-    return x;
-  }
+  bool isHead() const 
+  { return isRed() && m_parent->m_parent == this; }
 
-  auto maximum() const {
-    auto x = this;
-    while (x->m_rchild != nullptr)
-      x = x->m_rchild;
-    return x;
-  }
-
-  bool isHead() const {
-    return isRed() && m_parent->m_parent == this;
-  }
-
-  auto prev() const {
-    auto x = this;
-    if (x->isHead()) {
+  rbnode* prev() const {
+    rbnode_base* x = (rbnode_base*)this;
+    if (x->m_color == rbcolor::red 
+     && x->m_parent->m_parent == x) {
       x = x->m_rchild;
     } else if (x->m_lchild != nullptr) {
       auto y = x->m_lchild;
@@ -87,12 +72,13 @@ struct rbnode_base {
       if (x->m_lchild != y)
         x = y;
     }
-    return x;
+    return (rbnode*)x;
   }
 
-  auto next() const {
-    auto x = this;
-    if (x->isHead()) {
+  rbnode* next() const {
+    rbnode_base* x = (rbnode_base*)this;
+    if (x->m_color == rbcolor::red 
+     && x->m_parent->m_parent == x) {
       x = x->m_lchild;
     } else if (x->m_rchild != nullptr) {
       auto y = x->m_rchild;
@@ -118,110 +104,6 @@ struct rbnode_base {
        * next node. so we execute `x = y`
        * except `x->rchild == y`.
        */
-      if (x->m_rchild != y)
-        x = y;
-    }
-    return x;
-  }
-
-};
-
-template <typename T>
-struct rbnode : public rbnode_base {
-  T m_data;
-
-  rbnode*& parent() { return (rbnode*&)m_parent; }
-
-  rbnode*& lchild() { return (rbnode*&)m_lchild; }
-
-  rbnode*& rchild() { return (rbnode*&)m_rchild; }
-
-  rbnode*& brother() {
-    if (this == (rbnode*)m_parent->m_lchild)
-      return (rbnode*&)m_parent->m_rchild;
-    else
-      return (rbnode*&)m_parent->m_lchild;
-  }
-
-  rbnode*& gparent() { return (rbnode*&)m_parent->m_parent; }
-
-  rbnode*& uncle() {
-    rbnode_base* father = parent();
-    rbnode_base* grandfather = gparent();
-    if (father == grandfather->lchild())
-      return (rbnode*&)grandfather->rchild();
-    else
-      return (rbnode*&)grandfather->lchild();
-  }
-
-  bool isRed() const { return m_color == rbcolor::red; }
-
-  bool isBlk() const { return m_color == rbcolor::blk; }
-
-  auto setRed() {
-    m_color = rbcolor::red;
-    return this;
-  }
-
-  auto setBlk() {
-    m_color = rbcolor::blk;
-    return this;
-  }
-
-  auto minimum() const {
-    auto x = this;
-    while (x->m_lchild != nullptr)
-      x = x->m_lchild;
-    return x;
-  }
-
-  auto maximum() const {
-    auto x = this;
-    while (x->m_rchild != nullptr)
-      x = x->m_rchild;
-    return x;
-  }
-
-  bool isHead() const {
-    return isRed() && m_parent->m_parent == this;
-  }
-
-  rbnode* prev() const {
-    rbnode_base* x = (rbnode_base*)this;
-    if (x->isHead()) {
-      x = x->m_rchild;
-    } else if (x->m_lchild != nullptr) {
-      auto y = x->m_lchild;
-      while (y->m_rchild != nullptr)
-        y = y->m_rchild;
-      x = y;
-    } else {
-      auto y = x->m_parent;
-      while (x == y->m_lchild) {
-        x = y;
-        y = y->m_parent;
-      }
-      if (x->m_lchild != y)
-        x = y;
-    }
-    return (rbnode*)x;
-  }
-
-  rbnode* next() const {
-    rbnode_base* x = (rbnode_base*)this;
-    if (x->isHead()) {
-      x = x->m_lchild;
-    } else if (x->m_rchild != nullptr) {
-      auto y = x->m_rchild;
-      while (y->m_lchild != nullptr)
-        y = y->m_lchild;
-      x = y;
-    } else {
-      auto y = x->m_parent;
-      while (x == y->m_rchild) {
-        x = y;
-        y = y->m_parent;
-      }
       if (x->m_rchild != y)
         x = y;
     }
@@ -344,13 +226,13 @@ class rbtree {
   { return (node*)m_head.m_parent; }
 
   node*& leftmost()
-  { return (node*&)m_head.lchild(); }
+  { return (node*&)m_head.m_lchild; }
 
   node* leftmost() const
   { return (node*)m_head.m_lchild; }
 
   node*& rightmost()
-  { return (node*&)m_head.rchild(); }
+  { return (node*&)m_head.m_rchild; }
 
   node* rightmost() const
   { return (node*)m_head.m_rchild; }
@@ -412,7 +294,7 @@ class rbtree {
   }
 
   void reset() {
-    m_head.color() = rbcolor::red;
+    m_head.m_color = rbcolor::red;
     root() = nullptr;
     leftmost() = head();
     rightmost() = head();
@@ -551,7 +433,7 @@ class rbtree {
           leftmost() = pos->parent();
         else
           /* x must be red and x's children are all nil.(@see: tip) */
-          leftmost() = x;
+          leftmost() = x; /* leftmost() == minimum(x) ? */
       }
 
       if (pos == rightmost()) {
@@ -559,7 +441,7 @@ class rbtree {
           rightmost() = pos->parent();
         else 
           /* x must be red and x's children are all nil.(@see: tip) */
-          rightmost() = x;
+          rightmost() = x; /* leftmost() == maximum(x) ? */
       }
     }
 
@@ -975,6 +857,7 @@ class rbtree {
           }
         } else {  /* case 2.2.1.2.2, case 2.2.1.2.3 and case 2.2.1.2.4 */
           if (brother->rchild() == nullptr || brother->rchild()->isBlk()) { /* case 2.2.1.2.2 */
+            /* transform to case 2.2.1.2.3 */
             if (brother->lchild() == nullptr) printf("__ll__error__\n");
             brother->lchild()->setBlk();
             brother->setRed();
