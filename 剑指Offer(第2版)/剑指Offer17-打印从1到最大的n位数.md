@@ -21,6 +21,8 @@
 
 --------------------
 
+- 方法一：直接 generate.
+
 ```cpp
 class Solution {
 public:
@@ -37,4 +39,35 @@ public:
 ```
 --------------------
 
-- 简单题
+- 方法二：对于大数，采用回溯法
+
+```cpp
+class Solution {
+    vector<string> res;
+public:
+    vector<string> printNumbers(int n) {
+        res.clear();
+        char* num = new char[n + 1];
+        for (int i = 1; i <= n; i++) {
+            num[i] = '\0';
+            for (int j = 1; j <= 9; j++) {
+                num[0] = '0' + j;
+                backTrace(1, i, num);
+            }
+        }
+        delete[] num;
+        return res;
+    }
+
+    void backTrace(int cur, int bit, char* num) {
+        if (cur == bit) {
+            res.push_back(num);
+            return;
+        }
+        for (int i = 0; i <= 9; i++) {
+            num[cur] = '0' + i;
+            backTrace(cur + 1, bit, num);
+        }
+    }
+};
+```
