@@ -8,6 +8,6 @@ rbtest: rbtest.cc
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	rm main
+	rm -f main *test
 
 .PHONY: clean

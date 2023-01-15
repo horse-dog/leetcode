@@ -6,7 +6,7 @@
 int main(int argc, const char* argv[]) {
     rbtree<int> rbt;
     srand(time(NULL));
-
+{
     for (int i = 0; i < TEST_EPOCH; i++) {
         int arr[TEST_COUNT];
         for (int j = 0; j < TEST_COUNT; j++) {
@@ -21,6 +21,8 @@ int main(int argc, const char* argv[]) {
         printf("%6d ", i + 1); std::cout << rbt << std::endl;
         assert(rbt.size() == 0);
     }
+}
 
+    tiny_mempool::instance().report();
     return 0;
 }
