@@ -40,6 +40,26 @@ int main(int argc, const char* argv[]) {
     rbt1 = std::move(rbt);
 
     rbt.disp(); rbt1.disp();
-    
+
+    map<int, std::string> mp;
+
+    mp[2] = "alice";
+    mp[1] = "nina birch";
+
+    mp.disp();
+
+    mp[2] = "horsedog";
+    mp[5] = "joker";
+
+    mp.disp();
+
+    const auto cmp = mp;
+
+    try {
+        std::cout << cmp[55] << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+
     return 0;
 }

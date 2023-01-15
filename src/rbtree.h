@@ -1,7 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 #include <iostream>
+
+template <typename _Tp1, typename _Tp2>
+std::ostream& operator<<(std::ostream& os, 
+  const std::pair<_Tp1, _Tp2>& pair) {
+  return os << '{' << pair.first << ", " << pair.second << '}';
+}
 
 enum class rbcolor { red = false, blk = true };
 
@@ -158,7 +165,7 @@ class rbtree {
     node* x = root();
     while (x != nullptr) {  
       y = x;
-      if (v < x->m_data)
+      if (less(v, x->m_data))
         x = x->lchild();
       else
         x = x->rchild();
@@ -172,7 +179,7 @@ class rbtree {
     bool comp = true;
     while (x != nullptr) {
       y = x;
-      comp = v < x->m_data;
+      comp = less(v, x->m_data);
       x = comp ? x->lchild() : x->rchild();
     }
     node* j = y;
@@ -184,7 +191,7 @@ class rbtree {
         j = j->prev();
       }
     }
-    if (j->m_data < v) {
+    if (less(j->m_data, v)) {
       __insert(y, v);
       return true;
     }
@@ -222,6 +229,36 @@ class rbtree {
     if (!empty())
       __disp(root());
     std::cout << std::endl;
+  }
+
+  template <typename U>
+  node* lower_bound(const U& v) const {
+    node* y = head();
+    node* x = root();
+    while (x != nullptr) {
+      if (!less(x->m_data, v)) {
+        y = x;
+        x = x->lchild();
+      } else {
+        x = x->rchild();
+      }
+    }
+    return y;
+  }
+
+  template <typename U>
+  node* upper_bound(const U& v) const {
+    node* y = head();
+    node* x = root();
+    while (x != nullptr) {
+      if (less(v, x->m_data)) {
+        y = x;
+        x = x->lchild();
+      } else {
+        x = x->rchild();
+      }
+    }
+    return y;    
   }
 
   rbtree& operator=(const rbtree& tree) {
@@ -291,34 +328,6 @@ class rbtree {
     free((void*)p);
   }
 
-  node* lower_bound(const T& v) const {
-    node* y = head();
-    node* x = root();
-    while (x != nullptr) {
-      if (v <= x->m_data) {
-        y = x;
-        x = x->lchild();
-      } else {
-        x = x->rchild();
-      }
-    }
-    return y;
-  }
-
-  node* upper_bound(const T& v) const {
-    node* y = head();
-    node* x = root();
-    while (x != nullptr) {
-      if (v < x->m_data) {
-        y = x;
-        x = x->lchild();
-      } else {
-        x = x->rchild();
-      }
-    }
-    return y;    
-  }
-
   node* copyfrom(const node* rt) {
     if (rt == nullptr) return nullptr;
     node* p = create_node(rt->m_data);
@@ -352,6 +361,26 @@ class rbtree {
     m_node_count = 0;
   }
 
+  template <typename _Tp>
+  static bool less(const _Tp& x, const _Tp& y) 
+  { return x < y; }
+
+  template <typename _Tp1, typename _Tp2>
+  static bool less(const std::pair<_Tp1, _Tp2>& x, 
+            const std::pair<_Tp1, _Tp2>& y) {
+    return x.first < y.first;
+  }
+
+  template <typename _Tp1, typename _Tp2>
+  static bool less(const std::pair<_Tp1, _Tp2>& x, const _Tp1& y) {
+    return x.first < y;
+  }
+
+  template <typename _Tp1, typename _Tp2>
+  static bool less(const _Tp1& x, const std::pair<_Tp1, _Tp2>& y) {
+    return x < y.first;
+  }
+
  protected:
   void __insert(node* pos, const T& v) {
     node* newnode;
@@ -359,7 +388,7 @@ class rbtree {
      * we insert new node to lchild of pos if 
      * pos is head node or v < pos->m_data.
      */
-    if (pos == head() || v < pos->m_data) { 
+    if (pos == head() || less(v, pos->m_data)) { 
       newnode = create_node(v);
       pos->lchild() = newnode;
       if (pos == head()) {
@@ -961,4 +990,79 @@ class rbtree {
     return; /* would not reach. */
   }
   
+};
+
+template <typename T>
+class set {
+ protected:
+  rbtree<T> m_tree;
+
+ public:
+  bool insert(const T& x)
+  { return m_tree.insert_unique(x); }
+
+  bool erase(const T& x)
+  { return m_tree.erase(x) != 0; }
+
+  bool empty() const 
+  { return m_tree.empty(); }
+
+  size_t size() const 
+  { return m_tree.size(); }
+
+  void clear()
+  { m_tree.clear(); }
+
+  void disp() const
+  { m_tree.disp(); }
+
+  friend std::ostream& operator<<(std::ostream& os, const set& x)
+  { return os << x.m_tree; }
+
+};
+
+template <typename K, typename V>
+class map {
+ protected:
+  rbtree<std::pair<K, V>> m_tree;
+
+ public:
+  bool insert(const std::pair<K, V>& x)
+  { return m_tree.insert_unique(x); }
+
+  bool erase(const std::pair<K, V>& x)
+  { return m_tree.erase(x) != 0; }
+
+  bool empty() const 
+  { return m_tree.empty(); }
+
+  size_t size() const 
+  { return m_tree.size(); }
+
+  void clear()
+  { m_tree.clear(); }
+
+  void disp() const
+  { m_tree.disp(); }
+
+  friend std::ostream& operator<<(std::ostream& os, const map& x)
+  { return os << x.m_tree; }
+
+  V& operator[](const K& key) {
+    m_tree.insert_unique(std::pair<K, V>(key, V()));
+    rbnode<std::pair<K, V>>* lower = m_tree.lower_bound(key);
+    return lower->m_data.second;
+  }
+
+  const V& operator[](const K& key) const {
+    rbnode<std::pair<K, V>>* lower = m_tree.lower_bound(key);
+    if (lower->m_data.first != key) {
+      std::ostringstream msg;
+      msg << "KeyError: " << key;
+      throw std::logic_error(msg.str());
+    }
+    else
+      return lower->m_data.second;
+  }
+
 };
