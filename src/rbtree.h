@@ -19,7 +19,7 @@ struct rbnode_base {
 
   rbnode_base*& rchild() { return m_rchild; }
 
-  rbnode_base*& sister() {
+  rbnode_base*& brother() {
     if (this == m_parent->m_lchild)
       return m_parent->m_rchild;
     else
@@ -67,10 +67,6 @@ struct rbnode_base {
 
   bool isHead() const {
     return isRed() && m_parent->m_parent == this;
-  }
-
-  bool isRoot() const {
-    return m_parent->isHead();
   }
 
   auto prev() const {
@@ -140,7 +136,7 @@ struct rbnode : public rbnode_base {
 
   rbnode*& rchild() { return (rbnode*&)m_rchild; }
 
-  rbnode*& sister() {
+  rbnode*& brother() {
     if (this == (rbnode*)m_parent->m_lchild)
       return (rbnode*&)m_parent->m_rchild;
     else
@@ -188,10 +184,6 @@ struct rbnode : public rbnode_base {
 
   bool isHead() const {
     return isRed() && m_parent->m_parent == this;
-  }
-
-  bool isRoot() const {
-    return m_parent->isHead();
   }
 
   rbnode* prev() const {
@@ -293,7 +285,19 @@ class rbtree {
     return false;
   }
 
-  size_t erase(const T& x);
+  size_t erase(const T& x) {
+    node* lb = lower_bound(x);
+    node* rb = upper_bound(x);
+    size_t n = 0;
+    while (lb != rb) {
+      node* tmp = lb;
+      lb = lb->next();
+      __erase(tmp);
+      ++n;
+    }
+    m_node_count -= n;
+    return n;
+  }
 
   void clear() {
     if (!empty()) {
@@ -367,9 +371,33 @@ class rbtree {
     free((void*)p);
   }
 
-  node* lower_bound(const T& x);
+  node* lower_bound(const T& v) const {
+    node* y = head();
+    node* x = root();
+    while (x != nullptr) {
+      if (v <= x->m_data) {
+        y = x;
+        x = x->lchild();
+      } else {
+        x = x->rchild();
+      }
+    }
+    return y;
+  }
 
-  node* upper_bound(const T& x);
+  node* upper_bound(const T& v) const {
+    node* y = head();
+    node* x = root();
+    while (x != nullptr) {
+      if (v < x->m_data) {
+        y = x;
+        x = x->lchild();
+      } else {
+        x = x->rchild();
+      }
+    }
+    return y;    
+  }
 
   node* copyfrom();
 
@@ -434,11 +462,113 @@ class rbtree {
     newnode->parent() = pos;
     newnode->lchild() = nullptr;
     newnode->rchild() = nullptr;
-    __rebalance((rbnode_base*)newnode);
+    __rebalance(newnode);
     ++m_node_count;
   }
 
-  void __erase(const T& v);
+  void __erase(node* pos) {
+    /**
+     * case 1: pos's lchild and rchild are all nil.     ==> finally erase position is pos.
+     * case 2: pos's lchild is not nil, rchild is nil.  ==> finally erase position is pos.
+     * case 3: pos's lchild is nil, rchild is not nil.  ==> finally erase position is pos.
+     * case 4: pos's lchild and rchild are all not nil. ==> transform to case 1 or case 3.
+     *         tramsform finally erase position to pos's successor.
+     *         pos's successor must match case 1 or case 3.
+     * @tip: in case 2 and case 3, pos must be black, and pos's child must be red, 
+     *       and pos's child's children must be all nil.(@see: rule1, rule2).
+     */
+    node* y = pos; /* finally erase position in rbtree, initialized with pos */
+    node* x = nullptr;         /* child of fianlly erase pos */
+    node* x_parent = nullptr;  /* x's real-time parent */
+    
+    /**
+     * first of all, we find finally-erase-node and it's child,
+     * we know finally-erase-node has only one no-nil-child at most.
+     * so we can let @p x to present finally erase node's child.
+     */
+    if (y->lchild() == nullptr) {
+      x = y->rchild();
+    } else {
+      if (y->rchild() == nullptr) {
+        x = y->lchild();
+      } else {
+        y = y->rchild();
+        while (y->lchild() != 0)
+          y = y->lchild();
+        x = y->rchild();
+      }
+    }
+
+    if (y != pos) { /* if y != pos, this is cause only by case 4. */
+      /**
+       * becasue pos has two non-nil children in case 4,
+       * we know after unlink pos, leftmost and rightmost would not
+       * be mordified.
+       */
+
+      y->lchild() = pos->lchild();
+      pos->lchild()->parent() = y;
+
+      if (y != pos->rchild()) {
+        x_parent = y->parent();
+        if (x != nullptr)
+          x->parent() = y->parent();
+        y->parent()->lchild() = x;
+        y->rchild() = pos->rchild();
+        pos->rchild()->parent() = y;
+      } else {
+        x_parent = y;
+      }
+
+      if (pos == root())
+        root() = y;
+      else if (pos->parent()->lchild() == pos)
+        pos->parent()->lchild() = y;
+      else
+        pos->parent()->rchild() = y;
+      y->parent() = pos->parent();
+      rbcolor tmp = y->color();
+      y->color() = pos->color();
+      pos->color() = tmp;
+      y = pos;
+    } else {  /* case 1,2,3. */
+      x_parent = y->parent();
+      if (x != nullptr)
+        x->parent() = y->parent();
+      
+      if (pos == root()) {
+        root() = x;
+      } else {
+        if (pos->parent()->lchild() == pos)
+          pos->parent()->lchild() = x;
+        else
+          pos->parent()->rchild() = x;
+      }
+
+      if (pos == leftmost()) {
+        /* pos is leftmost, so pos's lchild must be nil. */
+        if (pos->rchild() == nullptr)
+          leftmost() = pos->parent();
+        else
+          /* x must be red and x's children are all nil.(@see: tip) */
+          leftmost() = x;
+      }
+
+      if (pos == rightmost()) {
+        if (pos->lchild() == nullptr)
+          rightmost() = pos->parent();
+        else 
+          /* x must be red and x's children are all nil.(@see: tip) */
+          rightmost() = x;
+      }
+    }
+
+    if (y->isBlk()) /* if y is black, now we are violate with rule2. */
+      /* fix the rbtree. */
+      __fixErase(x, x_parent);
+    
+    destroy_node(y);
+  }
 
   void __destroy(node* pos) {
     while (pos != nullptr) {
@@ -467,7 +597,7 @@ class rbtree {
     }
   }
 
-  void __rebalance(rbnode_base* newnode) {
+  void __rebalance(node* newnode) {
     /**
      * we always set newnode as red at first.
      * case1: parent of newnode is red
@@ -486,7 +616,7 @@ class rbtree {
      */
     newnode->setRed();
     if (newnode->parent()->isRed()) { /* case 1 */
-      if (newnode->isRoot()) {  /* case 1.1 */
+      if (newnode == root()) {  /* case 1.1 */
         newnode->setBlk();
         return;
       } else {  /* case 1.2 */
@@ -497,14 +627,14 @@ class rbtree {
     }
   }
 
-  void __leftRotate(rbnode_base* x) {
+  void __leftRotate(node* x) {
     /* rchild would not be nil when left rotate. */
-    rbnode_base* rchild = x->rchild();
+    node* rchild = x->rchild();
     x->rchild() = rchild->lchild();
     if (rchild->lchild() != nullptr)
       rchild->lchild()->parent() = x;
-    if (x->isRoot())
-      root() = (node*)rchild;
+    if (x == root())
+      root() = rchild;
     else if (x == x->parent()->lchild())
       x->parent()->lchild() = rchild;
     else 
@@ -514,14 +644,14 @@ class rbtree {
     x->parent() = rchild;
   }
 
-  void __rightRotate(rbnode_base* x) {
+  void __rightRotate(node* x) {
     /* lchild would not be nil when right rotate. */
-    rbnode_base* lchild = x->lchild();
+    node* lchild = x->lchild();
     x->lchild() = lchild->rchild();
     if (lchild->rchild() != nullptr)
       lchild->rchild()->parent() = x;
-    if (x->isRoot())
-      root() = (node*)lchild;
+    if (x == root())
+      root() = lchild;
     else if (x == x->parent()->lchild())
       x->parent()->lchild() = lchild;
     else 
@@ -534,10 +664,12 @@ class rbtree {
   /**
    * @brief fix insert.
    * @note we use [x] to discribe x is red node.
+   * @note "..." represents a subtree, and we assume black count of "..." is `N`.
+   * @note ".." represents a subtree, and we assume black count of ".." is `N-1`.
    * 
    * @param x newnode.
    */
-  void __fixInsert(rbnode_base* x) {
+  void __fixInsert(node* x) {
     /**
      * this function is called in case 1.2 of function __reblance.
      * so we know x is not root and parent of x is red.
@@ -573,7 +705,6 @@ class rbtree {
 
     /**
      * case 1.1.1: gparent must be black (@see: rule1).
-     * "..." represents a subtree, and we assume black count of "..." is `N`.
      * 
      *         gparent                     [gparent]
      *         /     \                      /     \
@@ -592,7 +723,6 @@ class rbtree {
 
     /**
      * case 1.1.2: gparent must be black (@see: rule1).
-     * "..." represents a subtree, and we assume black count of "..." is `N`.
      * 
      *         gparent                     [gparent]
      *         /     \                      /     \
@@ -606,8 +736,6 @@ class rbtree {
 
     /**
      * case 1.2.1: gparent must be black (@see: rule1).
-     * "..." represents a subtree, and we assume black count of "..." is `N`.
-     * ".." represents a subtree, and we assume black count of ".." is `N-1`.
      * 
      *          gparent                     [gparent]                        parent
      *          /     \                      /     \        rightrotate      /    \
@@ -623,8 +751,6 @@ class rbtree {
 
     /**
      * case 1.2.2: gparent must be black (@see: rule1).
-     * "..." represents a subtree, and we assume black count of "..." is `N`.
-     * ".." represents a subtree, and we assume black count of ".." is `N-1`.
      * 
      *          gparent                         gparent                             gparent
      *          /     \       leftrotate        /     \                             /     \
@@ -649,7 +775,7 @@ class rbtree {
           x->parent()->setBlk();
           x->uncle()->setBlk();
           x->gparent()->setRed();
-          if (x->gparent()->isRoot()) { /* case 1.1.1.1 */
+          if (x->gparent() == root()) { /* case 1.1.1.1 */
             x->gparent()->setBlk();
             return;
           } else {  /* case 1.1.1.2 */
@@ -677,7 +803,7 @@ class rbtree {
           x->parent()->setBlk();
           x->uncle()->setBlk();
           x->gparent()->setRed();
-          if (x->gparent()->isRoot()) {
+          if (x->gparent() == root()) {
             x->gparent()->setBlk();
             return;
           } else {
@@ -703,6 +829,203 @@ class rbtree {
     return; /* would not reach. */
   }
 
-  void __fixErase(rbnode_base* x);
+  /**
+   * @brief fix erase.
+   * @note we use [x] to discribe x is red node.
+   * @note we use (x) to discribe x is red node or black node.
+   * @note "..." represents a subtree, and we assume black count of "..." is `N`.
+   * @note ".." represents a subtree, and we assume black count of ".." is `N-1`.
+   */
+  void __fixErase(node* x, node* x_parent) {
+    /**
+     * no we are violate with rule2 bacause of the unlink operation in
+     * function __erase. 
+     * 
+     * @tip0: black count in the branch to x is one less than
+     * black count in other branch.
+     * 
+     * @tip1: currently we only violate rule2.
+     * we should guarantee rule0, rule1 and rule3 are satisfied when
+     * we do the fix operation.
+     * 
+     * @tip2: if a node's lchild or rchild is null, we consider lchild or 
+     * rchild of this node as nil(black node, and leaf node, @see: rule3).
+     * 
+     * case 1: x is root (x's parent is head).
+     *  case 1.1: x is red.  ==> put x to black to satisfy rule0, then return.
+     *  case 1.2: x is black ==> return.
+     * 
+     * case 2: x is not root (x's parent is not head).
+     *  case 2.1: x is red.  ==> put x to black to satisfy rule2, then return.
+     *  case 2.2: x is black.
+     *    case 2.2.1: x is x_parent's lchild.
+     *      case 2.2.1.1: x's brother is red.
+     *      case 2.2.1.2: x's brother is black.
+     *        case 2.2.1.2.1: x's brother's children are all black.
+     *        case 2.2.1.2.2: x's brother's lchild is red, rchild is black.
+     *        case 2.2.1.2.3: x's brother's rchild is red, lchild is black.
+     *        case 2.2.1.2.4: x's brother's children are all red.
+     *    case 2.2.2: x is x_parent's rchild.(mirror operation of case 2.2.1).
+     */
+
+    /**
+     * case 2.2.1.1: in this case, x's brother's children must be all black.(@see: rule1).
+     * and x's brother's children must not be nil.(@see: rule2).
+     * in this case, x's brother is red, so x's parent must be black.(@see: rule1).
+     * 
+     *     parent                 [parent]                           brother
+     *     /    \                  /    \         leftrotate         /     \
+     *    x   [brother]           x    brother      parent      [parent]    br
+     *  /  \    /    \    ==>   /  \    /    \        ==>         /   \     / \
+     * ..  ..  bl     br       ..  ..  bl     br                 x     bl ... ...
+     *        / \    /  \             / \    /  \               / \   /  \
+     *      ... ... ... ...         ... ... ... ...            .. .. ... ...
+     * 
+     * after this operation: refresh brother to bl, transform to case 2.2.1.2.
+     */
+
+    /**
+     * case 2.2.1.2.1:
+     * 
+     *   (parent)                (parent)
+     *    /    \                  /     \
+     *   x    brother   ==>     x    [brother]
+     *  / \    /  \            / \     /   \
+     * .. .. ...  ...         .. ..  ...   ...
+     * 
+     * case 2.2.1.2.1.1: parent is red ==> put parent to black; return.
+     * case 2.2.1.2.1.2: parent is red ==> x = parent; go on fix.
+     */
+
+    /**
+     * case 2.2.1.2.2:
+     * 
+     *   (parent)           (parent)                   (parent)
+     *    /    \              /   \       rightrotate    /   \
+     *   x    brother        x  [brother]   brother     x     bl
+     *  / \    /   \    ==> / \   /   \       ==>      / \   /  \
+     * .. .. [bl]   br     .. .. bl    br             .. .. ... [brother]
+     *       /  \   / \         /  \   / \                      /  \
+     *     ... ... .. ..      ... ... .. ..                   ...   br
+     *                                                             /  \
+     *                                                            ..   ..
+     * after this operation: refresh brother to bl, transform to case 2.2.1.2.3.
+     */
+
+    /**
+     * case 2.2.1.2.3:
+     * 
+     *    (parent)              parent                        (brother)
+     *    /     \              /     \       leftrotate         /   \
+     *   x    brother         x   (brother)    parent      parent    br
+     *  / \   /    \    ==>  / \   /    \        ==>        /  \    /  \
+     * .. .. bl    [br]     .. .. bl     br                x    bl ... ...
+     *      / \    /  \          / \    /  \              / \   / \
+     *     .. ..  ... ...       .. .. ...  ...           .. .. .. ..
+     * 
+     * after this operation: satisfiy all rules, return.
+     */
+
+    /**
+     * case 2.2.1.2.4:
+     * 
+     *    (parent)              parent                       (brother)
+     *    /     \              /     \       leftrotate       /     \
+     *   x    brother         x   (brother)    parent     parent     br
+     *  / \    /   \    ==>  / \    /    \       ==>      /   \     /  \
+     * .. .. [bl]  [br]     .. .. [bl]    br             x    [bl] ... ...
+     *      /  \   /  \           /  \   /  \           / \   /  \
+     *    ... ... ... ...       ... ... ... ...        .. .. ... ...
+     * 
+     * operation is same as case 2.2.1.2.3.
+     * after this operation: satisfiy all rules, return.
+     */
+
+    while (true) {
+      if (x == root()) {  /* case 1 */
+        if (x != nullptr)
+          x->setBlk();
+        return;
+      }
+
+      if (x != nullptr && x->isRed()) { /* case 2.1 */
+        x->setBlk();
+        return;
+      }
+
+      if (x == x_parent->lchild()) {  /* case 2.2.1 */
+        node* brother = x_parent->rchild();
+        if (brother->isRed()) { /* case 2.2.1.1 */
+          /* transform to case 2.2.1.2 */
+          brother->setBlk();
+          x_parent->setRed();
+          __leftRotate(x_parent);
+          brother = x_parent->rchild();
+        }
+        /* case 2.2.1.2 */
+        if ((brother->lchild() == nullptr || brother->lchild()->isBlk()) 
+         && (brother->rchild() == nullptr || brother->rchild()->isBlk())) { /* case 2.2.1.2.1 */
+          brother->setRed();
+          if (x_parent->isRed()) {  /* case 2.2.1.2.1.1 */
+            x_parent->setBlk();
+            return;
+          } else {  /* case 2.2.1.2.1.2 */
+            x = x_parent;
+            x_parent = x_parent->parent();
+          }
+        } else {  /* case 2.2.1.2.2, case 2.2.1.2.3 and case 2.2.1.2.4 */
+          if (brother->rchild() == nullptr || brother->rchild()->isBlk()) { /* case 2.2.1.2.2 */
+            if (brother->lchild() == nullptr) printf("__ll__error__\n");
+            brother->lchild()->setBlk();
+            brother->setRed();
+            __rightRotate(brother);
+            brother = x_parent->rchild();
+          }
+          /* case 2.2.1.2.3 and case 2.2.1.2.4, their operation are the same. */
+          brother->color() = x_parent->color();
+          x_parent->setBlk();
+          if (brother->rchild() == nullptr) printf("__lr__error__\n");
+          brother->rchild()->setBlk();
+          __leftRotate(x_parent);
+          return;
+        }
+      }
+      else {  /* case 2.2.2 */
+        node* brother = x_parent->lchild();
+        if (brother->isRed()) {
+          brother->setBlk();
+          x_parent->setRed();
+          __rightRotate(x_parent);
+          brother = x_parent->lchild();
+        }
+        if ((brother->lchild() == nullptr || brother->lchild()->isBlk()) 
+         && (brother->rchild() == nullptr || brother->rchild()->isBlk())) {
+          brother->setRed();
+          if (x_parent->isRed()) {
+            x_parent->setBlk();
+            return;
+          } else {
+            x = x_parent;
+            x_parent = x_parent->parent();
+          }
+        } else {
+          if (brother->lchild() == nullptr || brother->lchild()->isBlk()) {
+            if (brother->rchild() == nullptr) printf("__rr__error__\n");
+            brother->rchild()->setBlk();
+            brother->setRed();
+            __leftRotate(brother);
+            brother = x_parent->lchild();
+          }
+          brother->color() = x_parent->color();
+          x_parent->setBlk();
+          if (brother->lchild() == nullptr) printf("__rl__error__\n");
+          brother->lchild()->setBlk();
+          __rightRotate(x_parent);
+          return;
+        }
+      }
+    }
+    return; /* would not reach. */
+  }
   
 };

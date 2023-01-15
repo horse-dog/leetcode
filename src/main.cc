@@ -14,17 +14,18 @@ int main(int argc, const char* argv[]) {
 
     rbtree<int> rbt;
 
-    int a[] = {5, 15, 4, 2, 8, 3, 14, 9, 1, 12, 7, 11, 6, 10, 13};
-    for (int i = 0; i < 15; i++) 
+    int a[] = {5, 15, 4, 17, 2, 20, 8, 18, 3, 14, 9, 19, 1, 16, 12, 7, 11, 6, 10, 13};
+    for (int i = 0; i < 20; i++) {
         rbt.insert_unique(a[i]);
-
-    rbt.disp();
+        rbt.disp();
+    }
 
     std::cout << rbt << std::endl;
 
-    rbt.clear();
-
-    rbt.disp();
+    for (int i = 0; i < 20; i++) {
+        rbt.disp();
+        rbt.erase(a[i]);
+    }
 
     std::cout << rbt << std::endl;
     
