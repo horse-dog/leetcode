@@ -872,8 +872,7 @@ class rbtree {
           __leftRotate(x_parent);
           return;
         }
-      }
-      else {  /* case 2.2.2 */
+      } else {  /* case 2.2.2 */
         node* brother = x_parent->lchild();
         if (brother->isRed()) {
           brother->setBlk();
