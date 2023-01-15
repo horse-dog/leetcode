@@ -4,6 +4,8 @@
 **/*.d
 **/tmp
 **/tmp.*
+**/*test
+**/test*
 
 # Mac OS
 *.dSYM
