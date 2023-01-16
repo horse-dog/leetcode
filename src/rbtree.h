@@ -149,24 +149,24 @@ template <typename T>
 struct rbnode : public rbnode_base {
   T m_data;
 
-  rbcolor& color() { return m_color; }
+  rbcolor& color() const { return (rbcolor&)m_color; }
 
-  rbnode*& parent() { return (rbnode*&)m_parent; }
+  rbnode*& parent() const { return (rbnode*&)m_parent; }
 
-  rbnode*& lchild() { return (rbnode*&)m_lchild; }
+  rbnode*& lchild() const { return (rbnode*&)m_lchild; }
 
-  rbnode*& rchild() { return (rbnode*&)m_rchild; }
+  rbnode*& rchild() const { return (rbnode*&)m_rchild; }
 
-  rbnode*& brother() {
+  rbnode*& brother() const {
     if (this == parent()->lchild())
       return parent()->rchild();
     else
       return parent()->lchild();
   }
 
-  rbnode*& gparent() { return parent()->parent(); }
+  rbnode*& gparent() const { return parent()->parent(); }
 
-  rbnode*& uncle() {
+  rbnode*& uncle() const {
     rbnode* father = parent();
     rbnode* grandfather = gparent();
     if (father == grandfather->lchild())
@@ -186,43 +186,39 @@ struct rbnode : public rbnode_base {
   bool isHead() const 
   { return isRed() && m_parent->m_parent == this; }
 
-  rbnode* prev() const {
-    rbnode_base* x = (rbnode_base*)this;
-    if (x->m_color == rbcolor::red 
-     && x->m_parent->m_parent == x) {
-      x = x->m_rchild;
-    } else if (x->m_lchild != nullptr) {
-      auto y = x->m_lchild;
-      while (y->m_rchild != nullptr)
-        y = y->m_rchild;
+  static rbnode* prev(rbnode* x) {
+    if (x->isRed() && x->gparent() == x) {
+      x = x->rchild();
+    } else if (x->lchild() != nullptr) {
+      rbnode* y = x->lchild();
+      while (y->rchild() != nullptr)
+        y = y->rchild();
       x = y;
     } else {
-      auto y = x->m_parent;
-      while (x == y->m_lchild) {
+      rbnode* y = x->parent();
+      while (x == y->lchild()) {
         x = y;
-        y = y->m_parent;
+        y = y->parent();
       }
-      if (x->m_lchild != y)
+      if (x->lchild() != y)
         x = y;
     }
-    return (rbnode*)x;
+    return x;
   }
 
-  rbnode* next() const {
-    rbnode_base* x = (rbnode_base*)this;
-    if (x->m_color == rbcolor::red 
-     && x->m_parent->m_parent == x) {
-      x = x->m_lchild;
-    } else if (x->m_rchild != nullptr) {
-      auto y = x->m_rchild;
-      while (y->m_lchild != nullptr)
-        y = y->m_lchild;
+  static rbnode* next(rbnode* x) {
+    if (x->isRed() && x->gparent() == x) {
+      x = x->lchild();
+    } else if (x->rchild() != nullptr) {
+      rbnode* y = x->rchild();
+      while (y->lchild() != nullptr)
+        y = y->lchild();
       x = y;
     } else {
-      auto y = x->m_parent;
-      while (x == y->m_rchild) {
+      rbnode* y = x->parent();
+      while (x == y->rchild()) {
         x = y;
-        y = y->m_parent;
+        y = y->parent();
       }
       /**
        * this is for case:
@@ -237,20 +233,29 @@ struct rbnode : public rbnode_base {
        * next node. so we execute `x = y`
        * except `x->rchild == y`.
        */
-      if (x->m_rchild != y)
+      if (x->rchild() != y)
         x = y;
     }
-    return (rbnode*)x;
+    return x;
   }
 
 };
 
-template <typename T, typename Alloc=allocator<rbnode<T>>>
+template <typename T, typename Alloc=allocator<T>>
 class rbtree {
  protected:
-  using node = rbnode<T>;
+  template <typename _Tp, typename _Up>
+  struct alloc_rebind {};
 
-  struct rbtree_impl : public Alloc
+  template <template <typename, typename...> class _Template,
+            typename _Up, typename _Tp, typename... _Types>
+  struct alloc_rebind<_Template<_Tp, _Types...>, _Up>
+  { using type = _Template<_Up, _Types...>; };
+
+  using node = rbnode<T>;
+  using allocator_type = typename alloc_rebind<Alloc, node>::type;
+
+  struct rbtree_impl : public allocator_type
   { rbnode_base m_head;
     size_t m_node_count;
   };
@@ -317,7 +322,7 @@ class rbtree {
         __insert(y, v);
         return true;
       } else {
-        j = j->prev();
+        j = node::prev(j);
       }
     }
     if (less(j->m_data, v)) {
@@ -333,7 +338,7 @@ class rbtree {
     size_t n = 0;
     while (lb != rb) {
       node* tmp = lb;
-      lb = lb->next();
+      lb = node::next(lb);
       __erase(tmp);
       ++n;
     }
@@ -410,10 +415,10 @@ class rbtree {
     auto end = tree.head();
     if (begin != end) {
       os << begin->m_data;
-      begin = begin->next();
+      begin = node::next(begin);
       while (begin != end) {
         os << ", " << begin->m_data;
-        begin = begin->next();
+        begin = node::next(begin);
       }
     }
     return os << '}';
@@ -423,23 +428,14 @@ class rbtree {
   node* head() const
   { return (node*)(&m_impl.m_head); }
 
-  node*& root() 
+  node*& root() const
   { return (node*&)m_impl.m_head.m_parent; }
 
-  node* root() const
-  { return (node*)m_impl.m_head.m_parent; }
-
-  node*& leftmost()
+  node*& leftmost() const
   { return (node*&)m_impl.m_head.m_lchild; }
 
-  node* leftmost() const
-  { return (node*)m_impl.m_head.m_lchild; }
-
-  node*& rightmost()
+  node*& rightmost() const
   { return (node*&)m_impl.m_head.m_rchild; }
-
-  node* rightmost() const
-  { return (node*)m_impl.m_head.m_rchild; }
 
  protected:
   node* create_node(const T& x) { 
