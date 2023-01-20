@@ -37,9 +37,9 @@ public:
         int tmp = data[l];
         while (l < r) {
             while (l < r && !(data[r] & 1)) --r;
-                data[l] = data[r];
+            data[l] = data[r];
             while (l < r && (data[l] & 1)) ++l;
-                data[r] = data[l];
+            data[r] = data[l];
         }
         data[l] = tmp;
         return nums;
