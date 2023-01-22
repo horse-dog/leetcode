@@ -32,7 +32,7 @@ size_t binpowerWithMod(size_t __base, size_t __exp, size_t __mod);
 size_t bitcount(size_t __u);
 
 /**
- * @brief calculate greatest common divisor(gcd)
+ * @brief calculate greatest common divisor(gcd).
  * between @p __x and @p __y .
  * 
  * @param __x 
@@ -40,3 +40,13 @@ size_t bitcount(size_t __u);
  * @return int gcd
  */
 int gcd(int x, int y);
+
+/**
+ * @brief calculate \frac{1}{\sqrt{x}}.
+ * 
+ * @note this is a quick algothrim but not precise.
+ * 
+ * @param x 
+ * @return float \frac{1}{\sqrt{x}}
+ */
+float q_rsqrt(float x);
