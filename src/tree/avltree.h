@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stack>
 #include <atomic>
 #include <memory>
 #include <sstream>
@@ -170,9 +169,16 @@ class avltree {
  public:
   avltree() : m_impl() {}
 
-  avltree(const avltree& tree) = default;
+  avltree(const avltree& tree) {
+    m_impl.m_root = copyfrom(tree.m_impl.m_root);
+    m_impl.m_node_count = tree.m_impl.m_node_count;
+  }
 
-  avltree(avltree&& tree) = default;
+  avltree(avltree&& tree) {
+    m_impl.m_root = tree.m_impl.m_root;
+    m_impl.m_node_count = tree.m_impl.m_node_count;
+    tree.reset();
+  }
 
   ~avltree() { clear(); }
 
@@ -261,6 +267,15 @@ class avltree {
   void reset() {
     m_impl.m_node_count = 0;
     m_impl.m_root = nullptr;
+  }
+
+  node* copyfrom(const node* rt) {
+    if (rt == nullptr) return nullptr;
+    node* p = create_node(rt->m_data);
+    p->m_balance_factor = rt->m_balance_factor;
+    p->m_lchild = copyfrom((const node*)rt->m_lchild);
+    p->m_rchild = copyfrom((const node*)rt->m_rchild);
+    return p;
   }
 
   bool insert_avl(node*& pos, const T&value, int& taller) {

@@ -1,5 +1,5 @@
-#include "rbtree.h"
 #include "algorithm.h"
+#include "tree/rbtree.h"
 
 int main(int argc, const char* argv[]) {
 
