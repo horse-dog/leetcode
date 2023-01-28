@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framwork.h"
+#include <vector>
 
 /**
  * @brief binary power algorithm.
@@ -50,3 +51,51 @@ int gcd(int x, int y);
  * @return float \frac{1}{\sqrt{x}}
  */
 float q_rsqrt(float x);
+
+/**
+ * @brief construct tree using string format as
+ * `num({left_subtree}, {right_subtree})`
+ * 
+ * @param str format string
+ * @return TreeNode* 
+ */
+TreeNode* bracketConstructTree(const char* str);
+
+/**
+ * @brief destroy tree
+ * 
+ * @param node root node
+ */
+void destroyTree(TreeNode* node);
+
+/**
+ * @brief preorder tree
+ * 
+ * @param node root node
+ * @return std::vector<int> 
+ */
+std::vector<int> DLRTree(TreeNode* node);
+
+/**
+ * @brief inorder tree
+ * 
+ * @param node root node
+ * @return std::vector<int> 
+ */
+std::vector<int> LDRTree(TreeNode* node);
+
+/**
+ * @brief postorder tree
+ * 
+ * @param node root node
+ * @return std::vector<int> 
+ */
+std::vector<int> LRDTree(TreeNode* node);
+
+/**
+ * @brief levelorder tree
+ * 
+ * @param node root node
+ * @return std::vector<int> 
+ */
+std::vector<int> BFSTree(TreeNode* node);
