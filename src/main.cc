@@ -61,5 +61,26 @@ int main(int argc, const char* argv[]) {
         std::cerr << e.what() << std::endl;
     }
 
+    /**
+     *        2
+     *      /   \
+     *     1     3
+     *      \   / \
+     *       5 4   7
+     */
+    auto rt = bracketConstructTree("2(1(,5),3(4,7))");
+    bracketDispTree(rt);
+    dispContainer(DLRTree(rt));
+    dispContainer(LDRTree(rt));
+    dispContainer(LRDTree(rt));
+    dispContainer(BFSTree(rt));
+    destroyTree(rt);
+
+    int arr[] {1, 4, 7, 2, 3, 8, 0, 6, 5};
+    sort_heap(arr, arr + 5);
+    for (auto&& x : arr) std::cout << x << ' ';
+    std::cout << std::endl;
+
+    std::cout << oddbitcount(0b1101'0010) << std::endl;
     return 0;
 }
