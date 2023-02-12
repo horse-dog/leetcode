@@ -1,4 +1,6 @@
 #include <thread>
+#include <mutex>
+#include <cassert>
 #include <vector>
 #include "tree/rbtree.h"
 

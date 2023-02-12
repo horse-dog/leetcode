@@ -43,10 +43,10 @@ int oddbitcount(uint64_t u) {
 }
 
 int gcd(int x, int y) {   
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunsequenced"
+    // #pragma GCC diagnostic push
+    // #pragma GCC diagnostic ignored "-Wunsequenced"
     while(y ^= x ^= y ^= x %= y);
-    #pragma GCC diagnostic pop
+    // #pragma GCC diagnostic pop
     /**
      * express parse from right to left.
      * so: x' = x % y
