@@ -33,16 +33,18 @@
 ```cpp
 class Solution {
 public:
-    int maxSubArray(vector<int>& nums) {
-        int res = nums[0], tmp = res;
-        for (int i = 1; i < nums.size(); i++) {
-            if (tmp < 0) 
-                tmp = nums[i];
-            else 
-                tmp += nums[i];
-            if (res < tmp) res = tmp;
+    int findNthDigit(int n) {
+        int digit = 1, num, idx;
+        long long start = 1, count = 9;
+        while (n > count) {
+            n -= count;
+            start *= 10;
+            digit += 1;
+            count = 9 * start * digit;
         }
-        return res;
+        num = start + (n - 1) / digit;
+        idx = (n - 1) % digit;
+        return to_string(num)[idx] - '0';
     }
 };
 ```
