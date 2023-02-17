@@ -85,8 +85,11 @@ static TreeNode* __bracketConstructTree(const char*& str) {
         if (*str != ')')
             throw std::runtime_error("fmt string error");
         ++str;  // this is ')'
+    } else if (*str == '\0') {
+        return node;
+    } else {
+        throw std::runtime_error("fmt string error");
     }
-    return node;
 }
 
 TreeNode* bracketConstructTree(const char* str) {
