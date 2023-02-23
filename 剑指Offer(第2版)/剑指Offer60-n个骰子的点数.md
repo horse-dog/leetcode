@@ -32,7 +32,9 @@
 
     - 设输入 n 个骰子的解（即概率列表）为 f(n) ，其中「点数和」 x 的概率为 f(n,x)
 
-    - $f(n,x)=\sum_{i=1}^6x$
+    $$
+    f(n,x)=\sum_{i=1}^6x
+    $$
 
 ```cpp
 class Solution {
