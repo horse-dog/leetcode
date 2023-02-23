@@ -32,7 +32,7 @@
 
     - 设输入 n 个骰子的解（即概率列表）为 f(n) ，其中「点数和」 x 的概率为 f(n,x)
 
-    - $f(n,x) = \sum_{i=1}^{6}{f(n-1,x-i)} \ast \frac{1}{6} $
+    - $ f(n,x) = \sum_{i=1}^{6} {f(n-1,x-i)} \ast \frac{1}{6} $
 
 ```cpp
 class Solution {
