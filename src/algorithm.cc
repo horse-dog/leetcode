@@ -33,20 +33,11 @@ size_t bitcount(size_t __u) {
     return __result;
 }
 
-int oddbitcount(uint64_t u) {
-    int ret = 0;
-    while (u) {
-        ret ^= u;
-        u >>= 1;
-    }
-    return 1 ^ ret;
-}
-
 int gcd(int x, int y) {   
-    // #pragma GCC diagnostic push
-    // #pragma GCC diagnostic ignored "-Wunsequenced"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsequenced"
     while(y ^= x ^= y ^= x %= y);
-    // #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
     /**
      * express parse from right to left.
      * so: x' = x % y
@@ -85,15 +76,14 @@ static TreeNode* __bracketConstructTree(const char*& str) {
         if (*str != ')')
             throw std::runtime_error("fmt string error");
         ++str;  // this is ')'
-    } else if (*str == '\0') {
-        return node;
-    } else {
-        throw std::runtime_error("fmt string error");
-    }
+    } 
+    return node;
 }
 
 TreeNode* bracketConstructTree(const char* str) {
-    return __bracketConstructTree(str);
+    TreeNode* root = __bracketConstructTree(str);
+    if (*str != '\0') throw std::runtime_error("fmt string error");
+    return root;
 }
 
 void destroyTree(TreeNode* node) {
@@ -250,4 +240,19 @@ void sort_heap(int* from, int* to) {
     make_heap(from, to);
     for (int i = n; i > 1; i--)
         pop_heap(from, from + i);
+}
+
+void qsort(int* arr, int n) {
+    if (n <= 1) return;
+    int x = arr[0];
+    int l = 0, r = n - 1;
+    while (l < r) {
+        while (l < r && arr[r] > x) --r;
+        arr[l] = arr[r];
+        while (l < r && arr[l] < x) ++l;
+        arr[r] = arr[l];
+    }
+    arr[l] = x;
+    qsort(arr, l);
+    qsort(arr + l + 1, n - l - 1);
 }

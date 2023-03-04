@@ -35,18 +35,6 @@ size_t binpowerWithMod(size_t __base, size_t __exp, size_t __mod);
 size_t bitcount(size_t __u);
 
 /**
- * @brief calculate bitcount of u is an odd number
- * or even number.
- * 
- * @example oddbitcount(0b0110) is 0
- * @example oddbitcount(0b1011) is 1
- * 
- * @param u 
- * @return int 
- */
-int oddbitcount(uint64_t u);
-
-/**
  * @brief calculate greatest common divisor(gcd).
  * between @p __x and @p __y .
  * 
@@ -181,3 +169,10 @@ void del_heap(int* from, int* to, int index);
  * @param to end pos
  */
 void sort_heap(int* from, int* to);
+
+/**
+ * @brief quick sort
+ * @param arr array
+ * @param n size
+ */
+void qsort(int* arr, int n);
