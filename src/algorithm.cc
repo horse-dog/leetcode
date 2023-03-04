@@ -247,9 +247,9 @@ void qsort(int* arr, int n) {
     int x = arr[0];
     int l = 0, r = n - 1;
     while (l < r) {
-        while (l < r && arr[r] > x) --r;
+        while (l < r && arr[r] >= x) --r;
         arr[l] = arr[r];
-        while (l < r && arr[l] < x) ++l;
+        while (l < r && arr[l] <= x) ++l;
         arr[r] = arr[l];
     }
     arr[l] = x;
