@@ -35,6 +35,14 @@ size_t binpowerWithMod(size_t __base, size_t __exp, size_t __mod);
 size_t bitcount(size_t __u);
 
 /**
+ * @brief calculate first `1` bit.
+ * @example input @p __u = 0110'0010, the output is 0000'0010 
+ * @param __u number
+ * @return 
+ */
+size_t lowbit(size_t __u);
+
+/**
  * @brief calculate greatest common divisor(gcd).
  * between @p __x and @p __y .
  * 
