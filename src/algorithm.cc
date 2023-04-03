@@ -33,6 +33,11 @@ size_t bitcount(size_t __u) {
     return __result;
 }
 
+size_t lowbit(size_t __u) {
+    size_t a = __u & ((~__u) + 1);
+    return a;
+}
+
 int gcd(int x, int y) {   
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunsequenced"
