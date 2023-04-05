@@ -1,3 +1,15 @@
+/**
+ * @file threadpool.h
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-04-04
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ * @note 写一个简单的线程池
+ */
+
 #pragma once
 #include <condition_variable>
 #include <functional>
